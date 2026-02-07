@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+.output
+
+# Nuxt
+.nuxt
+.nitro
+.data
+.cache
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.fleet
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env files (use docker-compose or runtime env)
+.env
+.env.*
+!.env.example
+
+# Misc
+.DS_Store
+README.md
+*.md
