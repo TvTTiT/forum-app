@@ -5,13 +5,17 @@ services:
       - .env
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
       NITRO_HOST: "0.0.0.0"
       NITRO_PORT: ${PORT:-3000}
-    restart: unless-stopped
+      CHOKIDAR_USEPOLLING: "true"
+    command: npm run dev
     networks:
       - forum.test
 
