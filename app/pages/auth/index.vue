@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useFirebaseAuth, useForumApi, useForumSession } from '@composables'
+import { useFirebaseAuth, useForumApi, useForumSession } from '~/composables'
 
 definePageMeta({ layout: 'auth' })
 

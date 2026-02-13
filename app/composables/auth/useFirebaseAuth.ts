@@ -48,13 +48,19 @@ export function useFirebaseAuth() {
     error.value = null
     try {
       const cred = await signInWithEmailAndPassword($firebaseAuth, email, password)
-      if (!cred.user.emailVerified) {
+      try {
+        await reload(cred.user)
+      } catch {
+        // Reload can fail (e.g. network). Use cred.user for emailVerified check.
+      }
+      const currentUser = $firebaseAuth.currentUser ?? cred.user
+      if (!currentUser.emailVerified) {
         await signOut($firebaseAuth)
         user.value = null
         error.value = 'Please verify your email before signing in. Check your inbox for the verification link.'
         return
       }
-      user.value = cred.user
+      user.value = currentUser
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
     } finally {

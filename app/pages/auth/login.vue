@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useFirebaseAuth, useForumApi, useToast } from '~/composables'
+
 definePageMeta({ layout: 'auth' })
 
 const { login, loading, error, clearError } = useFirebaseAuth()
 const { fetchMe } = useForumApi()
+const toast = useToast()
 const email = ref('')
 const password = ref('')
 
@@ -10,12 +13,13 @@ async function submit() {
   clearError()
   await login(email.value, password.value)
   if (!error.value) {
+    toast.showSuccess('Signed in.')
     try {
       await fetchMe()
-    } catch (e: unknown) {
-      const err = e as { data?: { message?: string }; message?: string }
-      error.value = err?.data?.message ?? (e instanceof Error ? e.message : 'Failed to sync user with backend')
+    } catch {
+      toast.showInfo('Signed in. Server sync failed — some features may be limited.')
     }
+    await navigateTo('/auth')
   }
 }
 </script>

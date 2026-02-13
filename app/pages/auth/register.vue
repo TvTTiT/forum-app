@@ -1,24 +1,25 @@
 <script setup lang="ts">
+import { useFirebaseAuth, useForumApi, useToast } from '~/composables'
+
 definePageMeta({ layout: 'auth' })
 
 const { register, loading, error, clearError } = useFirebaseAuth()
 const { fetchMe } = useForumApi()
+const toast = useToast()
 const email = ref('')
 const password = ref('')
-const verificationEmailSent = ref(false)
 
 async function submit() {
-  verificationEmailSent.value = false
   clearError()
   await register(email.value, password.value)
-  if (!error.value) verificationEmailSent.value = true
   if (!error.value) {
     try {
       await fetchMe()
-    } catch (e: unknown) {
-      const err = e as { data?: { message?: string }; message?: string }
-      error.value = err?.data?.message ?? (e instanceof Error ? e.message : 'Failed to sync user with backend')
+    } catch {
+      // User is unverified; backend may reject /auth/me. Ignore.
     }
+    toast.showSuccess('Account created. Check your email to verify your address.')
+    await navigateTo('/auth')
   }
 }
 </script>
@@ -65,9 +66,6 @@ async function submit() {
             At least 6 characters
           </p>
         </div>
-        <p v-if="verificationEmailSent" class="text-sm text-green-600">
-          Account created. Check your email to verify your address.
-        </p>
         <p v-if="error" class="text-sm text-red-600">
           {{ error }}
         </p>
