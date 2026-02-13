@@ -11,6 +11,9 @@ useHead({
 <template>
   <div class="min-h-screen font-sans antialiased">
     <NuxtRouteAnnouncer />
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+    <AppToast />
   </div>
 </template>
