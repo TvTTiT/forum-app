@@ -3,9 +3,10 @@ import { useForumApi } from '~/composables/api/useForumApi'
 import { useFirebaseAuth } from '~/composables/auth/useFirebaseAuth'
 import { useForumSession } from '~/composables/session/useForumSession'
 
-const { user, logout, isAuthenticated } = useFirebaseAuth()
+const { user, logout, isAuthenticated, resendVerificationEmail, loading, error, clearError } = useFirebaseAuth()
 const { fetchMe } = useForumApi()
 const { meResult } = useForumSession()
+const verificationResent = ref(false)
 
 async function verifyApi() {
   meResult.value = null
@@ -16,6 +17,13 @@ async function verifyApi() {
     const msg = err?.data?.message ?? (e instanceof Error ? e.message : String(e))
     meResult.value = { error: msg }
   }
+}
+
+async function handleResendVerification() {
+  verificationResent.value = false
+  clearError()
+  await resendVerificationEmail()
+  if (!error.value) verificationResent.value = true
 }
 </script>
 
@@ -47,9 +55,32 @@ async function verifyApi() {
                 {{ user.email }}
               </p>
               <p class="text-sm text-slate-500">
-                Signed in
+                {{ user.emailVerified ? 'Signed in' : 'Email not verified' }}
               </p>
             </div>
+          </div>
+
+          <div v-if="!user.emailVerified" class="mt-4 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <p class="font-medium">
+              Verify your email
+            </p>
+            <p class="mt-1 text-amber-700">
+              We sent a verification link to {{ user.email }}. Check your inbox or resend below.
+            </p>
+            <p v-if="verificationResent" class="mt-2 font-medium text-green-700">
+              Verification email sent.
+            </p>
+            <p v-if="error" class="mt-2 text-red-600">
+              {{ error }}
+            </p>
+            <button
+              type="button"
+              :disabled="loading"
+              class="mt-3 rounded bg-amber-600 py-2 px-4 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              @click="handleResendVerification"
+            >
+              {{ loading ? 'Sending...' : 'Resend verification email' }}
+            </button>
           </div>
 
           <div class="mt-4 flex flex-wrap gap-3">

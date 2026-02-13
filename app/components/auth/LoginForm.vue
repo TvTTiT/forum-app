@@ -7,14 +7,17 @@ const { fetchMe } = useForumApi()
 const isLogin = ref(true)
 const showForgotPassword = ref(false)
 const resetSent = ref(false)
+const verificationEmailSent = ref(false)
 const email = ref('')
 const password = ref('')
 
 async function submit() {
+  verificationEmailSent.value = false
   if (isLogin.value) {
     await login(email.value, password.value)
   } else {
     await register(email.value, password.value)
+    if (!error.value) verificationEmailSent.value = true
   }
   if (!error.value) {
     try {
@@ -166,6 +169,9 @@ function backToLogin() {
             >
           </div>
 
+          <p v-if="verificationEmailSent" class="text-sm text-green-600">
+            Account created. Check your email to verify your address.
+          </p>
           <p v-if="error" class="text-sm text-red-600">
             {{ error }}
           </p>

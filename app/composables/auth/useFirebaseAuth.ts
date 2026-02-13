@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   onAuthStateChanged,
   type User,
 } from 'firebase/auth'
@@ -38,6 +39,12 @@ export function useFirebaseAuth() {
     error.value = null
     try {
       const cred = await signInWithEmailAndPassword($firebaseAuth, email, password)
+      if (!cred.user.emailVerified) {
+        await signOut($firebaseAuth)
+        user.value = null
+        error.value = 'Please verify your email before signing in. Check your inbox for the verification link.'
+        return
+      }
       user.value = cred.user
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
@@ -55,6 +62,7 @@ export function useFirebaseAuth() {
     error.value = null
     try {
       const cred = await createUserWithEmailAndPassword($firebaseAuth, email, password)
+      await sendEmailVerification(cred.user)
       user.value = cred.user
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e)
@@ -92,6 +100,26 @@ export function useFirebaseAuth() {
     }
   }
 
+  async function resendVerificationEmail() {
+    if (!$firebaseAuth || !user.value) {
+      error.value = 'Not signed in'
+      return
+    }
+    if (user.value.emailVerified) {
+      error.value = 'Email already verified'
+      return
+    }
+    loading.value = true
+    error.value = null
+    try {
+      await sendEmailVerification(user.value)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -107,5 +135,6 @@ export function useFirebaseAuth() {
     logout,
     getIdToken,
     resetPassword,
+    resendVerificationEmail,
   }
 }
