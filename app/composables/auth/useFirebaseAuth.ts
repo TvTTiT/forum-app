@@ -4,6 +4,7 @@ import {
   signOut,
   sendPasswordResetEmail,
   sendEmailVerification,
+  reload,
   onAuthStateChanged,
   type User,
 } from 'firebase/auth'
@@ -27,6 +28,14 @@ export function useFirebaseAuth() {
           await fetchMe().catch(() => {})
         }
       })
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && user.value && !user.value.emailVerified) {
+          refreshUser()
+        }
+      }
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      onUnmounted(() => document.removeEventListener('visibilitychange', handleVisibilityChange))
     }
   })
 
@@ -100,6 +109,23 @@ export function useFirebaseAuth() {
     }
   }
 
+  async function refreshUser() {
+    if (!$firebaseAuth || !user.value) return
+    try {
+      await reload(user.value)
+      const currentUser = $firebaseAuth.currentUser
+      user.value = null
+      await nextTick()
+      user.value = currentUser
+      if (currentUser?.emailVerified) {
+        const { fetchMe } = useForumApi()
+        await fetchMe().catch(() => {})
+      }
+    } catch {
+      // Ignore reload errors (e.g. network)
+    }
+  }
+
   async function resendVerificationEmail() {
     if (!$firebaseAuth || !user.value) {
       error.value = 'Not signed in'
@@ -135,6 +161,7 @@ export function useFirebaseAuth() {
     logout,
     getIdToken,
     resetPassword,
+    refreshUser,
     resendVerificationEmail,
   }
 }
