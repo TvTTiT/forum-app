@@ -83,7 +83,7 @@ async function handleResendVerification() {
             </button>
           </div>
 
-          <div class="mt-4 flex flex-wrap gap-3">
+          <div v-if="user.emailVerified" class="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
               class="rounded bg-slate-800 py-2 px-4 text-sm font-medium text-white hover:bg-slate-700"
@@ -101,7 +101,7 @@ async function handleResendVerification() {
           </div>
 
           <div
-            v-if="meResult"
+            v-if="user.emailVerified && meResult"
             class="mt-4 rounded border p-4 text-sm font-mono overflow-auto max-h-64"
             :class="'error' in meResult ? 'border-red-200 bg-red-50 text-red-800' : 'border-green-200 bg-green-50 text-green-800'"
           >
